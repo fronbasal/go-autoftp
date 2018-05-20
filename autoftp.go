@@ -5,6 +5,7 @@ import (
 	"github.com/dutchcoders/goftp"
 	"log"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 )
 
 var (
@@ -13,6 +14,14 @@ var (
 	password = kingpin.Flag("password", "The FTP password").Required().String()
 	dir      = kingpin.Flag("directory", "The directory to watch").Required().ExistingDir()
 )
+
+func uploadDir(ftp *goftp.FTP) {
+	err := ftp.Upload("./" + *dir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("Uploaded dir.")
+}
 
 func main() {
 	kingpin.Parse()
@@ -25,5 +34,33 @@ func main() {
 		log.Fatal(err)
 	}
 	defer ftp.Close()
-	fmt.Printf("Connected to %s as %s", *server, *username)
+	fmt.Printf("Connected to %s as %s \n", *server, *username)
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer watcher.Close()
+
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				log.Println("Got event: " + event.String())
+				if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Remove == fsnotify.Remove {
+					log.Println("Modified file, uploading directory.")
+					uploadDir(ftp)
+				}
+			case err := <-watcher.Errors:
+				log.Println("Error: " + err.Error())
+			}
+		}
+	}()
+
+	err = watcher.Add(*dir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	<-done
 }
