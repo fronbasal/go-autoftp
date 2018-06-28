@@ -20,7 +20,7 @@ func uploadDir(ftp *goftp.FTP) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Uploaded dir.")
+	log.Println("Uploaded dir " + *dir)
 }
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 	}
 	defer ftp.Close()
 	fmt.Printf("Connected to %s as %s \n", *server, *username)
-
+	uploadDir(ftp)
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
