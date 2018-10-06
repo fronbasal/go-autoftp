@@ -9,16 +9,21 @@ import (
 )
 
 var (
-	server   = kingpin.Flag("server", "The FTP host to connect to").Short('s').Required().String()
-	username = kingpin.Flag("username", "The FTP username").Short('u').Required().String()
-	password = kingpin.Flag("password", "The FTP password").Short('p').Required().String()
-	dir      = kingpin.Flag("directory", "The directory to watch").Short('d').Required().ExistingDir()
-	verbose  = kingpin.Flag("verbose", "Enable verbose output").Short('v').Bool()
+	server    = kingpin.Flag("server", "The FTP host to connect to").Short('s').Required().String()
+	username  = kingpin.Flag("username", "The FTP username").Short('u').Required().String()
+	password  = kingpin.Flag("password", "The FTP password").Short('p').Required().String()
+	dir       = kingpin.Flag("directory", "The directory to watch").Short('d').Required().ExistingDir()
+	verbose   = kingpin.Flag("verbose", "Enable verbose output").Short('v').Bool()
+	overwrite = kingpin.Flag("overwrite", "Overwrite existing files").Short('f').Default("true").Bool()
 )
 
 var absPath string // the absolute path to *dir
 
 func uploadDir(ftp *goftp.FTP) {
+	if *overwrite {
+		log.Debug("Removing existing files from server!")
+		ftp.Dele("/")
+	}
 	err := ftp.Upload(absPath)
 	if err != nil {
 		log.Fatal(err)
@@ -66,11 +71,8 @@ func main() {
 		for {
 			select {
 			case event := <-watcher.Events:
-				log.Debugf("Recorded event: %s", event.String())
-				if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Remove == fsnotify.Remove {
-					log.Debugf("A file was modified - syncing directory %s to %s", *dir, *server)
-					uploadDir(ftp)
-				}
+				log.Debugf("A change occurred - syncing directory %s to %s", *dir, *server)
+				uploadDir(ftp)
 			case err := <-watcher.Errors:
 				log.Warn("An error occurred while attempting to watch the given directory: ", err)
 			}
