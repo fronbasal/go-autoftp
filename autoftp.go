@@ -9,10 +9,10 @@ import (
 )
 
 var (
-	server   = kingpin.Flag("server", "The FTP host to connect to").Required().String()
-	username = kingpin.Flag("username", "The FTP username").Required().String()
-	password = kingpin.Flag("password", "The FTP password").Required().String()
-	dir      = kingpin.Flag("directory", "The directory to watch").Required().ExistingDir()
+	server   = kingpin.Flag("server", "The FTP host to connect to").Short('s').Required().String()
+	username = kingpin.Flag("username", "The FTP username").Short('u').Required().String()
+	password = kingpin.Flag("password", "The FTP password").Short('p').Required().String()
+	dir      = kingpin.Flag("directory", "The directory to watch").Short('d').Required().ExistingDir()
 )
 
 func uploadDir(ftp *goftp.FTP) {
