@@ -27,7 +27,7 @@ build/linux_arm64.tar.gz: $(sources)
 	$(call build,linux,arm64,)
 	$(call tar,linux,arm64)
 
-windows: build/windows_386.zip build/windows_amd64.zip
+windows: build/windows_amd64.zip
 
 build/windows_amd64.zip: $(sources)
 	$(call build,windows,amd64,.exe)
