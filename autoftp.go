@@ -14,7 +14,7 @@ var (
 	password  = kingpin.Flag("password", "The FTP password").Short('p').Required().String()
 	dir       = kingpin.Flag("directory", "The directory to watch").Short('d').Required().ExistingDir()
 	verbose   = kingpin.Flag("verbose", "Enable verbose output").Short('v').Bool()
-	overwrite = kingpin.Flag("overwrite", "Overwrite existing files").Short('f').Default("true").Bool()
+	overwrite = kingpin.Flag("overwrite", "Overwrite existing files").Short('f').Bool()
 )
 
 var absPath string // the absolute path to *dir
@@ -33,6 +33,9 @@ func uploadDir(ftp *goftp.FTP) {
 
 func main() {
 	kingpin.Parse()
+	kingpin.CommandLine.Name = "go-autoftp"
+	kingpin.CommandLine.Author("Daniel Malik <mail@fronbasal.de>")
+
 	log.SetLevel(log.InfoLevel)
 	if *verbose {
 		log.SetLevel(log.DebugLevel)

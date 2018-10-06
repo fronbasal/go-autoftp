@@ -16,11 +16,13 @@ go get -u -v github.com/fronbasal/go-autoftp
 usage: autoftp --server=SERVER --username=USERNAME --password=PASSWORD --directory=DIRECTORY [<flags>]
 
 Flags:
-  --help                 Show context-sensitive help (also try --help-long and --help-man).
-  --server=SERVER        The FTP host to connect to
-  --username=USERNAME    The FTP username
-  --password=PASSWORD    The FTP password
-  --directory=DIRECTORY  The directory to watch
+      --help                 Show context-sensitive help (also try --help-long and --help-man).
+  -s, --server=SERVER        The FTP host to connect to
+  -u, --username=USERNAME    The FTP username
+  -p, --password=PASSWORD    The FTP password
+  -d, --directory=DIRECTORY  The directory to watch
+  -v, --verbose              Enable verbose output
+  -f, --overwrite            Overwrite existing files
 ```
 
 ## License
