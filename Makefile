@@ -13,7 +13,7 @@ all: windows linux
 clean:
 	rm -rf build/
 
-linux: build/linux_arm.tar.gz build/linux_arm64.tar.gz build/linux_386.tar.gz build/linux_amd64.tar.gz
+linux: build/linux_arm.tar.gz build/linux_arm64.tar.gz build/linux_amd64.tar.gz
 
 build/linux_amd64.tar.gz: $(sources)
 	$(call build,linux,amd64,)
