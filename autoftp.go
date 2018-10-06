@@ -3,9 +3,9 @@ package main
 import (
 	"gopkg.in/alecthomas/kingpin.v2"
 	"github.com/dutchcoders/goftp"
-	"log"
-	"fmt"
 	"github.com/fsnotify/fsnotify"
+	log "github.com/sirupsen/logrus"
+	"path/filepath"
 )
 
 var (
@@ -13,18 +13,37 @@ var (
 	username = kingpin.Flag("username", "The FTP username").Short('u').Required().String()
 	password = kingpin.Flag("password", "The FTP password").Short('p').Required().String()
 	dir      = kingpin.Flag("directory", "The directory to watch").Short('d').Required().ExistingDir()
+	verbose  = kingpin.Flag("verbose", "Enable verbose output").Short('v').Bool()
 )
 
+var absPath string // the absolute path to *dir
+
 func uploadDir(ftp *goftp.FTP) {
-	err := ftp.Upload("./" + *dir)
+	err := ftp.Upload(absPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Uploaded dir " + *dir)
+	log.Infof("Synchronized directory (%s) with server %s!", *dir, *server)
 }
 
 func main() {
 	kingpin.Parse()
+	log.SetLevel(log.InfoLevel)
+	if *verbose {
+		log.SetLevel(log.DebugLevel)
+	}
+
+	if !filepath.IsAbs(*dir) {
+		var err error
+		absPath, err = filepath.Abs(*dir)
+		if err != nil {
+			log.Fatal("An error occurred while attempting to resolve the directory: ", err)
+		}
+	} else {
+		absPath = *dir
+	}
+	log.Debugf("Using path %s! ", absPath)
+
 	var ftp *goftp.FTP
 	var err error
 	if ftp, err = goftp.Connect(*server); err != nil {
@@ -34,26 +53,26 @@ func main() {
 		log.Fatal(err)
 	}
 	defer ftp.Close()
-	fmt.Printf("Connected to %s as %s \n", *server, *username)
+	log.Info("Connected to server ", *server)
 	uploadDir(ftp)
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer watcher.Close()
-
+	log.Debug("Watching directory!")
 	done := make(chan bool)
 	go func() {
 		for {
 			select {
 			case event := <-watcher.Events:
-				log.Println("Got event: " + event.String())
+				log.Debugf("Recorded event: %s", event.String())
 				if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Remove == fsnotify.Remove {
-					log.Println("Modified file, uploading directory.")
+					log.Debugf("A file was modified - syncing directory %s to %s", *dir, *server)
 					uploadDir(ftp)
 				}
 			case err := <-watcher.Errors:
-				log.Println("Error: " + err.Error())
+				log.Warn("An error occurred while attempting to watch the given directory: ", err)
 			}
 		}
 	}()
