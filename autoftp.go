@@ -71,7 +71,7 @@ func main() {
 		for {
 			select {
 			case event := <-watcher.Events:
-				log.Debugf("A change occurred - syncing directory %s to %s", *dir, *server)
+				log.Debugf("A change occurred - syncing directory %s to %s (event: %s)", *dir, *server, event.String())
 				uploadDir(ftp)
 			case err := <-watcher.Errors:
 				log.Warn("An error occurred while attempting to watch the given directory: ", err)
