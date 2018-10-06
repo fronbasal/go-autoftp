@@ -8,7 +8,7 @@ zip = cd build && zip $(1)_$(2).zip $(appname)$(3) && rm $(appname)$(3)
 
 .PHONY: all windows linux clean
 
-all: windows darwin linux
+all: windows linux
 
 clean:
 	rm -rf build/
